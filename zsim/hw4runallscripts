@@ -1,0 +1,27 @@
+#!/bin/sh
+
+# Define all replacement policies
+repls="LRU LFU SRRIP"
+
+# Define benchmarks for each suite
+spec_benchmarks="bzip2 gcc mcf hmmer sjeng libquantum xalancbmk milc cactusADM leslie3d namd soplex calculix lbm"
+parsec_benchmarks="blackscholes bodytrack canneal dedup fluidanimate freqmine streamcluster swaptions x264"
+
+# Loop over SPEC suite
+for bench in $spec_benchmarks; do
+    for repl in $repls; do
+        echo "Running SPEC/$bench with $repl..."
+        ./hw4runscript SPEC $bench $repl
+        # optional: wait for each job to finish if you don't want them all in background
+        # wait
+    done
+done
+
+# Loop over PARSEC suite
+for bench in $parsec_benchmarks; do
+    for repl in $repls; do
+        echo "Running PARSEC/$bench with $repl..."
+        ./hw4runscript PARSEC $bench $repl
+        # optional: wait
+    done
+done
