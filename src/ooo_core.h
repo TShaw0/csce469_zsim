@@ -50,7 +50,7 @@ class BranchPredictorPAg {
     private:
         uint32_t bhsr[1 << NB];
         uint8_t pht[1 << LB];
-        bool useA2; // Ture: use A2, else use A3
+        bool useA2; // True: use A2, else use A3
 
     public:
         BranchPredictorPAg() {
