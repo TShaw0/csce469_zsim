@@ -12,11 +12,11 @@ private:
     uint32_t numCands;
     uint32_t candIdx;
 
-    static const uint32_t MAX_RRPV = 3;
+    static const uint32_t MAX_RRPV;
 
 public:
-    SRRIPReplPolicy(uint32_t _numLines, uint32_t _numCands)
-        : numLines(_numLines), numCands(_numCands), candIdx(0)
+    SRRIPReplPolicy(uint32_t _numLines, uint32_t _numCands, uint32_t _maxRPPV)
+        : numLines(_numLines), numCands(_numCands), candIdx(0), MAX_RRPV(_maxRPPV)
     {
         rrpv = gm_calloc<uint32_t>(numLines);
         candArray = gm_calloc<uint32_t>(numCands);
