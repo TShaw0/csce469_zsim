@@ -11,8 +11,7 @@ private:
     uint32_t numLines;
     uint32_t numCands;
     uint32_t candIdx;
-
-    static const uint32_t MAX_RRPV;
+    uint32_t MAX_RRPV;
 
 public:
     SRRIPReplPolicy(uint32_t _numLines, uint32_t _numCands, uint32_t _maxRPPV)
