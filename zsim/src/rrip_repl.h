@@ -3,6 +3,16 @@
 
 #include "repl_policies.h"
 
+
+/* Legacy support.
+ * - On each replacement, the controller first calls startReplacement(), indicating the line that will be inserted;
+ *   then it calls recordCandidate() for each candidate it finds; finally, it calls getBestCandidate() to get the
+ *   line chosen for eviction. When the replacement is done, replaced() is called. The division of getBestCandidate()
+ *   and replaced() happens because the former is called in preinsert(), and the latter in postinsert(). Note how the
+ *   same restrictions on concurrent insertions extend to this class, i.e. startReplacement()/recordCandidate()/
+ *   getBestCandidate() will be atomic, but there may be intervening update() calls between getBestCandidate() and
+ *   replaced().
+ */
 class SRRIPReplPolicy : public LegacyReplPolicy {
 private:
     uint32_t* rrpv;
