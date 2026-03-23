@@ -24,8 +24,8 @@ private:
     uint32_t MAX_RRPV;
 
 public:
-    SRRIPReplPolicy(uint32_t _numLines, uint32_t _numCands, uint32_t _maxRPPV)
-        : numLines(_numLines), numCands(_numCands), candIdx(0), MAX_RRPV(_maxRPPV)
+    SRRIPReplPolicy(uint32_t _numLines, uint32_t _numCands, uint32_t _maxRRPV)
+        : numLines(_numLines), numCands(_numCands), candIdx(0), MAX_RRPV(_maxRRPV)
     {
         rrpv = gm_calloc<uint32_t>(numLines);
         candArray = gm_calloc<uint32_t>(numCands);
