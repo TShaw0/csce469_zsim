@@ -54,7 +54,7 @@ You will run tests one at a time (in order to not violate lab cloud policies) to
 Run the tests with each benchmark and replacement policy
 
 ```
-$ ./hw2rinscript <suite (SPEC or PARSEC)> <bench> <repl_pol>
+$ ./hw2runscript <bench> <automaton> (this one only works with PARSEC benchmarks)
 $ ./projectrunscript <suite (SPEC or PARSEC)> <bench> <repl_pol>
 $ ./projectrunscript <suite (SPEC or PARSEC)> <bench> <repl_pol>
 ```
