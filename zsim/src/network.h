@@ -34,6 +34,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <cstdint>          // Ethan added this. Terminal doesn't run otherwise
 
 class Network {
     private:

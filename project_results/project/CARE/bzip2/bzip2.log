@@ -1,0 +1,63 @@
+[H] Starting zsim, built Tue Apr 28 17:40:03 CDT 2026 (rev no git repo)
+[H] Creating global segment, 1024 MBs
+[H] Global segment shmid = 26
+[H] Deadlock detection ON
+[S 0] Started instance
+[S 0] Started RR scheduler, quantum=10000 phases
+[S 0] [CARE] Care Policy Initialized...
+[S 0] l3-0: mshrs 64 domain 0
+[S 0] mem-0: domain 0, 4 ranks/ch 8 banks/rank, tech DDR3-1333-CL10, boundLat 90 rd / 40 wr
+[S 0] mem-0: Address mapping rank:col:bank row 63:15 col 12:3 rank 14:13 bank 2:0
+[S 0] mem-1: domain 0, 4 ranks/ch 8 banks/rank, tech DDR3-1333-CL10, boundLat 90 rd / 40 wr
+[S 0] mem-1: Address mapping rank:col:bank row 63:15 col 12:3 rank 14:13 bank 2:0
+[S 0] mem-2: domain 0, 4 ranks/ch 8 banks/rank, tech DDR3-1333-CL10, boundLat 90 rd / 40 wr
+[S 0] mem-2: Address mapping rank:col:bank row 63:15 col 12:3 rank 14:13 bank 2:0
+[S 0] mem-3: domain 0, 4 ranks/ch 8 banks/rank, tech DDR3-1333-CL10, boundLat 90 rd / 40 wr
+[S 0] mem-3: Address mapping rank:col:bank row 63:15 col 12:3 rank 14:13 bank 2:0
+[S 0] Hierarchy: [ l1i-0 l1d-0 ] -> l2-0
+[S 0] Hierarchy: [ l2-0 ] -> l3-0
+[S 0] Initialized system
+[S 0] HDF5 backend: Opening ./outputs/project/CARE/bzip2/zsim.h5
+[S 0] HDF5 backend: Created table, 6224 bytes/record, 169 records/write
+[S 0] HDF5 backend: Opening ./outputs/project/CARE/bzip2/zsim-ev.h5
+[S 0] HDF5 backend: Created table, 6224 bytes/record, 22 records/write
+[S 0] HDF5 backend: Opening ./outputs/project/CARE/bzip2/zsim-cmp.h5
+[S 0] HDF5 backend: Created table, 3680 bytes/record, 1 records/write
+[S 0] Initialization complete
+[H] Attached to global heap
+[S 0] Started process, PID 10055
+[S 0] procMask: 0x0
+[S 0] [0] Adjusting clocks, domain 0, de-ffwd 0
+[S 0] FFI mode initialized, 2 ffiPoints
+[S 0] vDSO info initialized
+[S 0] WARN: vsyscall page not found
+[S 0] FF thread 0 starting
+[S 0] FF control Thread TID 10061
+[S 0] Started scheduler watchdog thread
+[S 0] Started contention simulation thread 0
+[H] Some fast-forwarding is going on, not doing deadlock detection (a: 1, ff: 1, sff: 0)
+[H] Some fast-forwarding is going on, not doing deadlock detection (a: 1, ff: 1, sff: 0)
+[S 0] ffiPoint reached, 12800000001 instrs, limit 12800000000
+[S 0] FFI: Exiting fast-forward
+[S 0] [0] Adjusting clocks, domain 0, de-ffwd 1
+[S 0] Thread 0 starting
+[S 0] [1] Internal exception detected:
+[S 0] [1]  Code: 1
+[S 0] [1]  Address: 0x7ffff716e3a8
+[S 0] [1]  Description: Exception Code: ACCESS_INVALID_ADDRESS. Exception Address = 0x7ffff716e3a8. Access Type: UNKNOWN. Access Address = 0xaea3b62788
+[S 0] [1]  Caused by invalid access to address 0xaea3b62788
+[S 0] [1] Backtrace (11/40 max frames)
+[S 0] [1]  /home/jemcm/CSCE469/FinalProject/group-5/zsim/build/opt/zsim.cpp:1394 / InternalExceptionHandler(unsigned int, LEVEL_BASE::EXCEPTION_INFO*, LEVEL_VM::PHYSICAL_CONTEXT*, void*)
+[S 0] [1]  :? / LEVEL_PINCLIENT::IEH_CALLBACKS::NotifyInternalException(unsigned int, LEVEL_BASE::EXCEPTION_INFO*, LEVEL_VM::CONTEXT*)
+[S 0] [1]  /home/jemcm/CSCE469/FinalProject/group-5/tools/pin-2.14-71313-gcc.4.4.7-linux/intel64/bin/pinbin(_ZN8LEVEL_VM12SIGNALS_IMPL19InternalHandlerSyncEiPN7BARECRT8SIGXINFOEPN5PINVM11ISIGCONTEXTEPPKNS_14SCT_ATTRIBUTESEPNS_5PCTXTEPj+0x444) [0x3043a9454]
+[S 0] [1]  /home/jemcm/CSCE469/FinalProject/group-5/tools/pin-2.14-71313-gcc.4.4.7-linux/intel64/bin/pinbin(_ZN8LEVEL_VM12SIGNALS_IMPL20HandlePhysicalSignalEPN7BARECRT8SIGXINFOEPN5PINVM11ISIGCONTEXTE+0x124) [0x3043aa1f4]
+[S 0] [1]  /home/jemcm/CSCE469/FinalProject/group-5/tools/pin-2.14-71313-gcc.4.4.7-linux/intel64/bin/pinbin(_ZN5PINVM28SIGNAL_DETAILS_LINUX_INTEL6415InternalHandlerEiPN7BARECRT8SIGXINFOEPv+0xe8) [0x304438c88]
+[S 0] [1]  /home/jemcm/CSCE469/FinalProject/group-5/tools/pin-2.14-71313-gcc.4.4.7-linux/intel64/bin/pinbin(BARECRT_SigReturnRt+0) [0x30446603c]
+[S 0] [1]  /home/jemcm/CSCE469/FinalProject/group-5/zsim/build/opt/care_repl.h:178 / CAREReplPolicy::quantizePMC(unsigned long, double, unsigned int)
+[S 0] [1]  /home/jemcm/CSCE469/FinalProject/group-5/zsim/build/opt/prio_queue.h:128 / PrioQueue<TimingEvent, 1024u>::size() const
+[S 0] [1]  /home/jemcm/CSCE469/FinalProject/group-5/zsim/build/opt/contention_sim.cpp:282 / ContentionSim::simThreadLoop(unsigned int)
+[S 0] [1]  /home/jemcm/CSCE469/FinalProject/group-5/tools/pin-2.14-71313-gcc.4.4.7-linux/intel64/bin/pinbin(_ZN8LEVEL_VM17VM_THREAD_DB_UNIX13THREAD_RUNNER9RunThreadEPN11OS_SERVICES7ITHREADE+0x289) [0x3043b3239]
+[S 0] [1]  /home/jemcm/CSCE469/FinalProject/group-5/tools/pin-2.14-71313-gcc.4.4.7-linux/intel64/bin/pinbin(_ZN11OS_SERVICES6THREAD12RootFunctionEPv+0x26) [0x304465636]
+C: Tool (or Pin) caused signal 11 at PC 0x7ffff716e3a8
+[H] Child 10055 done
+[H] Panic on build/opt/zsim_harness.cpp:123: Child 10055 (idx 0) exit was anomalous, killing simulation

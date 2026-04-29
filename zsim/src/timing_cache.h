@@ -35,12 +35,18 @@ class MissResponseEvent;
 class MissWritebackEvent;
 class ReplAccessEvent;
 class TimingEvent;
+class CAREReplPolicy;
 
 class TimingCache : public Cache {
     private:
         uint64_t lastAccCycle, lastFreeCycle;
         uint32_t numMSHRs, activeMisses;
         g_vector<TimingEvent*> pendingQueue;
+
+        // CARE implementation stuff
+        g_vector<MSHR> mshrList; 
+        uint64_t lastRecordedCycle;
+        CAREReplPolicy* care;
 
         // Stats
         CycleBreakdownStat profOccHist;
@@ -67,10 +73,15 @@ class TimingCache : public Cache {
         void simulateMissResponse(MissResponseEvent* ev, uint64_t cycle, MissStartEvent* mse);
         void simulateMissWriteback(MissWritebackEvent* ev, uint64_t cycle, MissStartEvent* mse);
         void simulateReplAccess(ReplAccessEvent* ev, uint64_t cycle);
+        void PCMUpdate(uint64_t cycle);
+        void MSHRAdd(uint64_t lineAddr, uint32_t id);
+        MSHR MSHRRemove(uint64_t lineAddr);
+        uint32_t getActiveMisses() const { return activeMisses; }
 
     private:
         uint64_t highPrioAccess(uint64_t cycle);
         uint64_t tryLowPrioAccess(uint64_t cycle);
+        
 };
 
 #endif  // TIMING_CACHE_H_

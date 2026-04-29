@@ -3,7 +3,6 @@
 
 #include "repl_policies.h"
 
-
 /* Legacy support.
  * - On each replacement, the controller first calls startReplacement(), indicating the line that will be inserted;
  *   then it calls recordCandidate() for each candidate it finds; finally, it calls getBestCandidate() to get the
@@ -17,6 +16,8 @@ class SRRIPReplPolicy : public LegacyReplPolicy {
 private:
     uint32_t* rrpv;
     uint32_t* candArray;
+    
+    bool* wasInserted;
 
     uint32_t numLines;
     uint32_t numCands;
@@ -29,6 +30,7 @@ public:
     {
         rrpv = gm_calloc<uint32_t>(numLines);
         candArray = gm_calloc<uint32_t>(numCands);
+        wasInserted = gm_calloc<bool>(numLines);
 
         for (uint32_t i = 0; i < numLines; i++) {
             rrpv[i] = MAX_RRPV - 1;
@@ -41,7 +43,16 @@ public:
     }
 
     void update(uint32_t id, const MemReq* req) {
-        rrpv[id] = 0;
+        
+        // This is the first access after insertion
+        if (wasInserted[id]) {
+          wasInserted[id] = false;
+        }
+        
+        // This is a real hit
+        else {
+          rrpv[id] = 0;
+        }
     }
 
     void startReplacement(const MemReq* req) {
@@ -60,7 +71,7 @@ public:
                 }
             }
             for (uint32_t i = 0; i < candIdx; i++) {
-                rrpv[candArray[i]]++;
+                rrpv[candArray[i]] = std::min(rrpv[candArray[i]] + 1, MAX_RRPV);
             }
         }
     }
@@ -68,6 +79,7 @@ public:
     void replaced(uint32_t id) {
         candIdx = 0;
         rrpv[id] = MAX_RRPV - 1;
+        wasInserted[id] = true;
     }
 };
 

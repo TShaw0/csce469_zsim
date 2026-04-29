@@ -27,6 +27,8 @@
 #include "event_recorder.h"
 #include "timing_event.h"
 #include "zsim.h"
+#include "care_repl.h"
+#include <cstdlib>
 
 // Events
 class HitEvent : public TimingEvent {
@@ -47,7 +49,9 @@ class MissStartEvent : public TimingEvent {
         TimingCache* cache;
     public:
         uint64_t startCycle; //for profiling purposes
-        MissStartEvent(TimingCache* _cache,  uint32_t postDelay, int32_t domain) : TimingEvent(0, postDelay, domain), cache(_cache) {}
+        uint64_t lineAddr;
+        uint32_t lineId;
+        MissStartEvent(TimingCache* _cache,  uint32_t postDelay, int32_t domain, uint64_t _lineAddr = 0, uint32_t _lineId = 0) : TimingEvent(0, postDelay, domain), cache(_cache), lineAddr(_lineAddr), lineId(_lineId) {}
         void simulate(uint64_t startCycle) {cache->simulateMissStart(this, startCycle);}
 };
 
@@ -65,7 +69,8 @@ class MissWritebackEvent : public TimingEvent {
         TimingCache* cache;
         MissStartEvent* mse;
     public:
-        MissWritebackEvent(TimingCache* _cache,  MissStartEvent* _mse, uint32_t postDelay, int32_t domain) : TimingEvent(0, postDelay, domain), cache(_cache), mse(_mse) {}
+        uint64_t lineAddr;
+        MissWritebackEvent(TimingCache* _cache,  MissStartEvent* _mse, uint32_t postDelay, int32_t domain, uint64_t _lineAddr = 0) : TimingEvent(0, postDelay, domain), cache(_cache), mse(_mse), lineAddr(_lineAddr) {}
         void simulate(uint64_t startCycle) {cache->simulateMissWriteback(this, startCycle, mse);}
 };
 
@@ -88,6 +93,14 @@ TimingCache::TimingCache(uint32_t _numLines, CC* _cc, CacheArray* _array, ReplPo
     activeMisses = 0;
     domain = _domain;
     info("%s: mshrs %d domain %d", name.c_str(), numMSHRs, domain);
+
+    // Care Additions
+    lastRecordedCycle = 0;
+    care = dynamic_cast<CAREReplPolicy*>(_rp);
+    mshrList.resize(numMSHRs);
+    for(MSHR& entry: mshrList){
+        entry.valid = false;
+    }
 }
 
 void TimingCache::initStats(AggregateStat* parentStat) {
@@ -166,9 +179,9 @@ uint64_t TimingCache::access(MemReq& req) {
             // Miss events:
             // MissStart (does high-prio lookup) -> getEvent || evictionEvent || replEvent (if needed) -> MissWriteback
 
-            MissStartEvent* mse = new (evRec) MissStartEvent(this, accLat, domain);
+            MissStartEvent* mse = new (evRec) MissStartEvent(this, accLat, domain, req.lineAddr, lineId);
             MissResponseEvent* mre = new (evRec) MissResponseEvent(this, mse, domain);
-            MissWritebackEvent* mwe = new (evRec) MissWritebackEvent(this, mse, accLat, domain);
+            MissWritebackEvent* mwe = new (evRec) MissWritebackEvent(this, mse, accLat, domain, req.lineAddr);
 
             mse->setMinStartCycle(req.cycle);
             mre->setMinStartCycle(getDoneCycle);
@@ -310,6 +323,14 @@ void TimingCache::simulateHit(HitEvent* ev, uint64_t cycle) {
 void TimingCache::simulateMissStart(MissStartEvent* ev, uint64_t cycle) {
     if (activeMisses < numMSHRs) {
         activeMisses++;
+
+        // PCM UPDATE!?
+        if (care){
+            // MSHR add entry
+            MSHRAdd(ev->lineAddr, ev->lineId);
+            PCMUpdate(cycle);
+        }
+
         profOccHist.transition(activeMisses, cycle);
 
         ev->startCycle = cycle;
@@ -333,6 +354,18 @@ void TimingCache::simulateMissWriteback(MissWritebackEvent* ev, uint64_t cycle, 
         assert(activeMisses);
         profMissLat.inc(cycle - mse->startCycle);
         activeMisses--;
+        if(care){
+            uint64_t lineAddr = ev->lineAddr;
+            uint32_t lineId = mse->lineId;
+            MSHR mshr_removed = MSHRRemove(lineAddr);
+            care->DTRM(mshr_removed.PMC);
+            care->quantizePMC(lineAddr, mshr_removed.PMC, lineId);
+            care->shtPMCUpdate(lineAddr, mshr_removed.PMC, lineId);
+            
+            PCMUpdate(cycle);
+        }
+        
+
         profOccHist.transition(activeMisses, lookupCycle);
         if (!pendingQueue.empty()) {
             //info("XXX %ld elems in pending queue", pendingQueue.size());
@@ -362,3 +395,74 @@ void TimingCache::simulateReplAccess(ReplAccessEvent* ev, uint64_t cycle) {
     }
 }
 
+/* Care implementation for PCM Measurement Logic */ 
+// Advance the PMC Values called with change in Active Misses
+void TimingCache::PCMUpdate(uint64_t cycle) {
+    // Compare current clock cycle to last clock cycle
+    int clock_diff = 0;
+    if (lastRecordedCycle == 0){
+        clock_diff = 1; 
+    }
+    else {
+        clock_diff = cycle - lastRecordedCycle;
+    }
+    if (clock_diff < 0){
+        clock_diff = clock_diff * -1;
+        warn("[CARE] Cycle Difference Negative!!!");
+    }
+    if (clock_diff > 0){
+        for (MSHR& entry: mshrList) {
+                if(entry.valid == true){
+                    if (activeMisses > 0){
+                    entry.PMC += (1.0/activeMisses) * clock_diff;
+                }
+                else {
+                    entry.PMC += (double)clock_diff;
+                }
+            }
+        }
+    }
+    lastRecordedCycle = cycle; 
+}
+
+// Add MemReq to MSHR
+void TimingCache::MSHRAdd(uint64_t lineAddr, uint32_t id){
+    uint32_t signature = care->call_hashAddr(lineAddr);
+    bool add = false;
+    for(MSHR& entry: mshrList) {
+        if (entry.valid == false){
+            // Add Info to MSHR etry
+            entry.id = id;
+            entry.lineAddr = lineAddr;
+            entry.valid = true;
+            entry.signature = signature; // I need to figure out how to calculate the signature from here...
+            entry.PMC = 0;
+            add = true;
+            break;
+        }
+    }
+    if (!add){
+        warn("[CARE] MSHR out of space");
+    }
+}
+
+
+// Remove MemReq from MSHR
+MSHR TimingCache::MSHRRemove(uint64_t lineAddr){
+    MSHR return_entry;
+    for(MSHR& entry: mshrList) {
+        if (entry.lineAddr == lineAddr && entry.valid == true){
+            return_entry = entry;
+            // Remove Entry
+            entry.valid = false;
+            entry.PMC = 0;
+            entry.id = 0;
+            entry.lineAddr = -1;
+            entry.signature = 0;
+            return return_entry;
+        }
+    }
+    return_entry.PMC = 0;
+    warn("[CARE] MSHR Entry Not Removed!");
+    return return_entry;
+}

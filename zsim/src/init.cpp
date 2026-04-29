@@ -55,6 +55,7 @@
 #include "ooo_core.h"
 #include "part_repl_policies.h"
 #include "rrip_repl.h"
+#include "care_repl.h"
 #include "pin_cmd.h"
 #include "prefetcher.h"
 #include "proc_stats.h"
@@ -171,6 +172,8 @@ BaseCache* BuildCacheBank(Config& config, const string& prefix, g_string& name, 
         assert(isPow2(rpvMax + 1));
         // add your SRRIP construction code here
         rp = new SRRIPReplPolicy(numLines, candidates, rpvMax);
+    } else if (replType == "CARE") {
+        rp = new CAREReplPolicy(numLines, candidates, numLines);
     } else if (replType == "WayPart" || replType == "Vantage" || replType == "IdealLRUPart") {
         if (replType == "WayPart" && arrayType != "SetAssoc") panic("WayPart replacement requires SetAssoc array");
 
@@ -282,7 +285,11 @@ BaseCache* BuildCacheBank(Config& config, const string& prefix, g_string& name, 
             uint32_t mshrs = config.get<uint32_t>(prefix + "mshrs", 16);
             uint32_t tagLat = config.get<uint32_t>(prefix + "tagLat", 5);
             uint32_t timingCandidates = config.get<uint32_t>(prefix + "timingCandidates", candidates);
-            cache = new TimingCache(numLines, cc, array, rp, accLat, invLat, mshrs, tagLat, ways, timingCandidates, domain, name);
+            TimingCache* tc = new TimingCache(numLines, cc, array, rp, accLat, invLat, mshrs, tagLat, ways, timingCandidates, domain, name);
+            // Wire TimingCache to CARE policy if applicable
+            CAREReplPolicy* careRp = dynamic_cast<CAREReplPolicy*>(rp);
+            //if (careRp) careRp->setTimingCache(tc);
+            cache = tc;
         } else if (type == "Tracing") {
             g_string traceFile = config.get<const char*>(prefix + "traceFile","");
             if (traceFile.empty()) traceFile = g_string(zinfo->outputDir) + "/" + name + ".trace";

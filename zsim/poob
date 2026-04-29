@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# Define all replacement policies
+repls="CARE" #LFU LRU Rand SRRIP CARE"
+
+# Define benchmarks for each suite
+spec_benchmarks="bzip2 gcc mcf hmmer xalan milc cactusADM leslie3d namd calculix sjeng libquantum soplex lbm"
+parsec_benchmarks="blackscholes bodytrack fluidanimate streamcluster swaptions canneal x264"
+
+# Loop over SPEC suite
+# for bench in $spec_benchmarks; do
+#     for repl in $repls; do
+#         echo "Running SPEC/$bench with $repl..."
+#         ./projectrunscript SPEC $bench $repl
+#     done
+# done
+
+# Loop over PARSEC suite
+for bench in $parsec_benchmarks; do
+    for repl in $repls; do
+        echo "Running PARSEC/$bench with $repl..."
+        ./projectrunscript PARSEC $bench $repl
+    done
+done

@@ -73,6 +73,15 @@ const char* MESIStateName(MESIState s);
 inline bool IsGet(AccessType t) { return t == GETS || t == GETX; }
 inline bool IsPut(AccessType t) { return t == PUTS || t == PUTX; }
 
+/* MSHR struct */
+struct MSHR {
+    Address lineAddr;  // Default member initializers cannot be initialized or scons will not compile
+    bool valid;
+    // CARE
+    uint32_t id;
+    double PMC = 0;
+    uint32_t signature;
+};
 
 /* Memory request */
 struct MemReq {
@@ -89,6 +98,11 @@ struct MemReq {
     //Requester id --- used for contention simulation
     uint32_t srcId;
 
+    // A Maybe lazy implementation. Might need more later. Idk, man. I'm trying my best...
+    // MSHR Variables
+    double pmcs;
+    uint32_t signature; 
+
     //Flags propagate across levels, though not to evictions
     //Some other things that can be indicated here: Demand vs prefetch accesses, TLB accesses, etc.
     enum Flag {
@@ -100,6 +114,14 @@ struct MemReq {
     };
     uint32_t flags;
 
+    /*
+    // Constructors are illegal in POD types. Scons will not compile it
+    MemReq(Address _lineAddr, AccessType _type, uint32_t _childId, MESIState* _state, uint64_t _cycle, lock_t* _childLock, MESIState _initialState, uint32_t _srcId, uint32_t _flags):
+    lineAddr(_lineAddr), type(_type), childId(_childId), state(_state), cycle(_cycle), childLock(_childLock), initialState(_initialState), srcId(_srcId), flags(_flags) {
+        pmcs = 0;
+        signature = 0;
+    }
+    */
     inline void set(Flag f) {flags |= f;}
     inline bool is (Flag f) const {return flags & f;}
 };

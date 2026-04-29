@@ -1,0 +1,7 @@
+[H] Starting zsim, built Fri Apr  3 12:56:55 CDT 2026 (rev no git repo)
+[H] Creating global segment, 1024 MBs
+[H] Global segment shmid = 360477
+[H] Deadlock detection ON
+/gcc : No such file or directory
+[H] Child 3563786 done
+[H] All children done, exiting
